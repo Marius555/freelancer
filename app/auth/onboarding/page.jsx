@@ -331,25 +331,6 @@ const OnboardingPage = () => {
                   </Button>
                 </>
               )}
-              {currentStep === 4 && selectedRole === "freelancer" && (
-                <>
-                  <Button
-                    onPress={handleBack}
-                    color="default"
-                    size="lg"
-                  >
-                    Back
-                  </Button>
-                  <Button
-                    onPress={handleFreelancerSubmit}
-                    isDisabled={isNextDisabled()}
-                    color="primary"
-                    size="lg"
-                  >
-                    Submit
-                  </Button>
-                </>
-              )}
             </div>
           </Card>
         </form>

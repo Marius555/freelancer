@@ -11,7 +11,7 @@ import { LogoIcon } from "../../components/logoFile";
 import { Eye, EyeClosed, Github, Chrome } from "lucide-react";
 import { loginResolver } from "../../resolvers/loginResolver";
 import { DotLottieReact } from "@lottiefiles/dotlottie-react";
-
+import { LoginUser } from "../../appwriteUtils/loginUser";
 export default function Component() {
   const [isVisible, setIsVisible] = React.useState(false);
 
@@ -30,11 +30,11 @@ export default function Component() {
   const toggleVisibility = () => setIsVisible(!isVisible);
 
   const onSubmit = async (data) => {
-    try {
-      console.log("Login form submitted:", data);
-      // Add your login logic here
-    } catch (error) {
-      console.error("Login error:", error);
+    const response = await LoginUser(data);
+    if (response.success) {
+      console.log("Login successful");
+    } else {
+      console.log(response.message);
     }
   };
 

@@ -1,22 +1,19 @@
 "use server"
-import { ID } from "node-appwrite";
 import { createAdminClient } from "../appwriteServer";
 import { cookies } from "next/headers";
 import { createLocalCookie } from "./localCookie";
 
-export async function createUser(data) {
+export async function LoginUser(data) {
     try {
         const email = await data.email.trim();
-        const name = await email.split("@");
         const password = await data.password;
       
         const { account } = await createAdminClient();
-      
-        await account.create(ID.unique(), email, password, name[0]);
+
         const session = await account.createEmailPasswordSession(email, password);
-        const cookieStore = await cookies()
+        console.log("Original session:", session);
         
-        // Set appSession cookie
+        const cookieStore = await cookies()
         cookieStore.set("appSession", session.secret, {
           path: "/",
           httpOnly: true,
