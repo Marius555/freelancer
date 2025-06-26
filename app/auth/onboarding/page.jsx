@@ -15,6 +15,8 @@ import BuyerStepTwo from "../../../components/Stepper/buyer/buyerStepTwo";
 import BuyerStepThree from "../../../components/Stepper/buyer/buyerStepThree";
 import { freelancerOnboardingResolver } from "../../../resolvers/freelancerOnboardingResolver";
 import { clientOnboardingResolver } from "../../../resolvers/clientOnboardingResolver";
+import createOnboarding from "../../../appwriteUtils/createOnboarding";
+
 
 const OnboardingPage = () => {
   const [currentStep, setCurrentStep] = useState(1);
@@ -134,7 +136,11 @@ const OnboardingPage = () => {
       delete submissionData.resolver;
       
       // Here you would typically send the data to your backend
-      console.log("Form submitted:", submissionData);
+      const req = await createOnboarding(submissionData);
+      console.log(req);
+      if (req.success) {
+        console.log(req.message);
+      } 
     } catch (error) {
       console.error("Error submitting form:", error);
     }

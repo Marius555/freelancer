@@ -10,7 +10,7 @@ const decript = async (value) => {
       })
       return payload
   } catch (error) {
-    
+    console.error(error);
   }
 }
 
