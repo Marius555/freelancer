@@ -3,26 +3,9 @@
 import React from "react";
 import { Input, Textarea } from "@heroui/react";
 import { useForm } from "react-hook-form";
-import { yupResolver } from "@hookform/resolvers/yup";
-import * as yup from "yup";
 import { motion } from "framer-motion";
 import { ArrowRight } from "lucide-react";
-
-const formSchema = yup.object({
-  firstName: yup
-    .string()
-    .required("First name is required")
-    .min(2, "First name must be at least 2 characters"),
-  lastName: yup
-    .string()
-    .required("Last name is required")
-    .min(2, "Last name must be at least 2 characters"),
-  description: yup
-    .string()
-    .required("Description is required")
-    .min(10, "Description must be at least 10 characters")
-    .max(500, "Description must not exceed 500 characters"),
-});
+import { firstStepResolver } from "../../resolvers/createProfileResolvers";
 
 const FirstStep = ({ onNext, formData, setFormData }) => {
   const {
@@ -30,7 +13,7 @@ const FirstStep = ({ onNext, formData, setFormData }) => {
     handleSubmit,
     formState: { errors },
   } = useForm({
-    resolver: yupResolver(formSchema),
+    resolver: firstStepResolver,
     defaultValues: formData || {
       firstName: "",
       lastName: "",
@@ -77,10 +60,7 @@ const FirstStep = ({ onNext, formData, setFormData }) => {
               {...register("firstName")}
               errorMessage={errors.firstName?.message}
               isInvalid={!!errors.firstName}
-              classNames={{
-                input: "text-lg",
-                label: "text-sm font-medium",
-              }}
+              
             />
           </div>
           <div className="space-y-2">
@@ -90,10 +70,7 @@ const FirstStep = ({ onNext, formData, setFormData }) => {
               {...register("lastName")}
               errorMessage={errors.lastName?.message}
               isInvalid={!!errors.lastName}
-              classNames={{
-                input: "text-lg",
-                label: "text-sm font-medium",
-              }}
+             
             />
           </div>
         </motion.div>
@@ -112,10 +89,7 @@ const FirstStep = ({ onNext, formData, setFormData }) => {
             errorMessage={errors.description?.message}
             isInvalid={!!errors.description}
             minRows={2}
-            classNames={{
-              input: "text-lg",
-              label: "text-sm font-medium",
-            }}
+          
           />
           
         </motion.div>
@@ -128,7 +102,8 @@ const FirstStep = ({ onNext, formData, setFormData }) => {
         >
           <button
             type="submit"
-            className="px-8 flex flex-row items-center justify-center gap-2 py-3 w-full bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-all duration-300 transform hover:scale-[1.02] active:scale-[0.98] shadow-lg hover:shadow-xl font-medium text-lg"
+            
+            className=" flex p-2  flex-row items-center justify-center gap-2  w-full bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-all duration-300 transform hover:scale-[1.02] active:scale-[0.98] shadow-lg hover:shadow-xl font-medium text-lg"
           >
             <p className="text-lg font-medium">Next</p>
             <ArrowRight className="w-4 h-4" />

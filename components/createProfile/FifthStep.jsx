@@ -3,23 +3,9 @@
 import React, { useState, useEffect } from "react";
 import { Input, Button, Chip, Select, SelectItem } from "@heroui/react";
 import { useForm } from "react-hook-form";
-import { yupResolver } from "@hookform/resolvers/yup";
-import * as yup from "yup";
 import { motion, AnimatePresence } from "framer-motion";
 import { ArrowRight, Plus, X } from "lucide-react";
-
-const skillSchema = yup.object({
-  skillName: yup
-    .string()
-    .required("Skill name is required")
-    .min(2, "Skill name must be at least 2 characters")
-    .max(50, "Skill name max 50 characters"),
-  proficiency: yup
-    .number()
-    .required("Proficiency level is required")
-    .min(1, "Proficiency must be at least 1")
-    .max(5, "Proficiency must not exceed 5"),
-});
+import { fifthStepResolver } from "../../resolvers/createProfileResolvers";
 
 const FifthStep = ({ onNext, formData, setFormData }) => {
   const [skills, setSkills] = useState([]);
@@ -27,9 +13,9 @@ const FifthStep = ({ onNext, formData, setFormData }) => {
 
   // Ensure all skills have unique IDs on component mount
   useEffect(() => {
-    if (formData?.skills && formData.skills.length > 0) {
+    if (formData?.additionalSkills && formData.additionalSkills.length > 0) {
       // Filter out invalid skills and ensure all have unique IDs
-      const validSkills = formData.skills
+      const validSkills = formData.additionalSkills
         .filter(skill => skill.skillName && skill.proficiency && skill.proficiency >= 1 && skill.proficiency <= 5)
         .map((skill, index) => ({
           ...skill,
@@ -38,7 +24,7 @@ const FifthStep = ({ onNext, formData, setFormData }) => {
       setSkills(validSkills);
       setSkillCounter(validSkills.length);
     }
-  }, [formData?.skills]);
+  }, [formData?.additionalSkills]);
 
   const {
     register,
@@ -48,7 +34,7 @@ const FifthStep = ({ onNext, formData, setFormData }) => {
     setValue,
     formState: { errors },
   } = useForm({
-    resolver: yupResolver(skillSchema),
+    resolver: fifthStepResolver,
     defaultValues: {
       skillName: "",
       proficiency: 3,
@@ -98,7 +84,7 @@ const FifthStep = ({ onNext, formData, setFormData }) => {
       alert("Please add at least one skill");
       return;
     }
-    setFormData({ ...formData, skills });
+    setFormData({ ...formData, additionalSkills: skills });
     onNext();
   };
 

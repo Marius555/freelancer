@@ -3,7 +3,7 @@
 import React, { useState } from "react";
 import { Card } from "@heroui/react";
 import { motion, AnimatePresence } from "framer-motion";
-import FirstStep from "./FirstStep";
+import FirstStep from "../createProfile/FirstStep";
 import SecondStep from "../createProfile/SecondStep";
 import ThirdStep from "../createProfile/ThirdStep";
 import FourthStep from "../createProfile/FourthStep";
@@ -100,13 +100,13 @@ const CreateProfileStepper = () => {
                 }}
               >
                 {currentStep === 0 && (
-                  <SixStep
+                  <FirstStep
                     onNext={handleNext}
                     formData={formData}
                     setFormData={setFormData}
                   />
                 )}
-                {/* {currentStep === 1 && (
+                {currentStep === 1 && (
                   <SecondStep
                     onNext={handleNext}
                     formData={formData}
@@ -140,7 +140,7 @@ const CreateProfileStepper = () => {
                     formData={formData}
                     setFormData={setFormData}
                   />
-                )} */}
+                )}
                 {/* Add other steps here as they are created */}
               </motion.div>
             </AnimatePresence>

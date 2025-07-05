@@ -3,49 +3,10 @@
 import React, { useState, useEffect } from "react";
 import { Input, Select, SelectItem, Checkbox, Chip, DatePicker } from "@heroui/react";
 import { useForm } from "react-hook-form";
-import { yupResolver } from "@hookform/resolvers/yup";
-import * as yup from "yup";
 import { motion } from "framer-motion";
 import { ArrowRight, Briefcase, CheckCircle } from "lucide-react";
 import { CalendarDate, today, getLocalTimeZone } from "@internationalized/date";
-
-const formSchema = yup.object({
-  occupation: yup.string().required("Please select an occupation"),
-  startDate: yup.mixed().required("Start date is required").test('is-valid-date', 'Start date is required', function(value) {
-    // Check if value is a valid Date object or CalendarDate object
-    if (!value) return false;
-    if (value instanceof Date) return !isNaN(value.getTime());
-    if (value && typeof value === 'object' && value.year && value.month && value.day) {
-      return true; // CalendarDate object
-    }
-    return false;
-  }),
-  endDate: yup.mixed().nullable().test('end-date-or-currently-working', 'Please provide an end date or check "Currently working in this role"', function(value) {
-    const { isCurrentlyWorking } = this.parent;
-    
-    // If currently working is checked, end date is not required
-    if (isCurrentlyWorking) {
-      return true;
-    }
-    
-    // If not currently working, end date is required
-    if (!value) {
-      return false;
-    }
-    
-    // Validate end date format
-    if (value instanceof Date) {
-      return !isNaN(value.getTime());
-    }
-    if (value && typeof value === 'object' && value.year && value.month && value.day) {
-      return true; // CalendarDate object
-    }
-    
-    return false;
-  }),
-  skills: yup.array().min(2, "Please select at least 2 specializations").max(5, "You can select up to 5 specializations"),
-  isCurrentlyWorking: yup.boolean(),
-});
+import { fourthStepResolver } from "../../resolvers/createProfileResolvers";
 
 // Comprehensive list of online jobs/occupations
 const occupations = [
@@ -209,7 +170,7 @@ const FourthStep = ({ onNext, formData, setFormData }) => {
     setValue,
     watch,
   } = useForm({
-    resolver: yupResolver(formSchema),
+    resolver: fourthStepResolver,
     defaultValues: formData || {
       occupation: "",
       startDate: null,
@@ -229,8 +190,6 @@ const FourthStep = ({ onNext, formData, setFormData }) => {
       setValue("skills", []);
     }
   }, [watchedOccupation, setValue]);
-
-
 
   // Get user's timezone
   const getUserTimezone = () => {

@@ -9,6 +9,7 @@ import { Camera, Upload, X, ArrowRight, Loader2 } from 'lucide-react';
 
 const SecondStep = ({ onNext, formData, setFormData }) => {
   const [imagePreview, setImagePreview] = useState(null);
+  const [selectedFile, setSelectedFile] = useState(null);
   const [isUploading, setIsUploading] = useState(false);
   const [error, setError] = useState(null);
 
@@ -26,6 +27,9 @@ const SecondStep = ({ onNext, formData, setFormData }) => {
         setError('Image size should be less than 5MB');
         return;
       }
+
+      // Store the original file object
+      setSelectedFile(file);
 
       const reader = new FileReader();
       reader.onload = () => {
@@ -45,14 +49,19 @@ const SecondStep = ({ onNext, formData, setFormData }) => {
   });
 
   const handleSubmit = async () => {
-    if (!imagePreview) {
+    if (!imagePreview || !selectedFile) {
       setError('Please upload a profile picture');
       return;
     }
 
     setIsUploading(true);
     try {
-      setFormData({ ...formData, profilePicture: imagePreview });
+      // Store both the file object and the preview
+      setFormData({ 
+        ...formData, 
+        profilePicture: selectedFile, // Store the actual File object
+        profilePicturePreview: imagePreview // Store the base64 preview for display
+      });
       onNext();
     } catch (err) {
       setError('Failed to upload image. Please try again.');
@@ -63,6 +72,7 @@ const SecondStep = ({ onNext, formData, setFormData }) => {
 
   const removeImage = () => {
     setImagePreview(null);
+    setSelectedFile(null);
     setError(null);
   };
 

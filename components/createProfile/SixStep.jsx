@@ -1,58 +1,18 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { Input, Button, Select, SelectItem, DatePicker } from "@heroui/react";
+import { Input, Button, Select, SelectItem, DatePicker, Autocomplete, AutocompleteItem } from "@heroui/react";
 import { useForm } from "react-hook-form";
-import { yupResolver } from "@hookform/resolvers/yup";
-import * as yup from "yup";
 import { motion } from "framer-motion";
 import { ArrowRight } from "lucide-react";
 import { parseDate, getLocalTimeZone, today } from "@internationalized/date";
-
-const educationSchema = yup.object({
-  profession: yup
-    .string()
-    .required("Profession is required")
-    .min(2, "Profession must be at least 2 characters")
-    .max(100, "Profession max 100 characters"),
-  country: yup
-    .string()
-    .required("Country is required"),
-  school: yup
-    .string()
-    .required("School name is required")
-    .min(2, "School name must be at least 2 characters")
-    .max(100, "School name max 100 characters"),
-  educationLevel: yup
-    .string()
-    .required("Education level is required"),
-  startDate: yup
-    .string()
-    .required("Start date is required")
-    .test('is-date', 'Start date cannot be in the future', function(value) {
-      if (!value) return false;
-      const selectedDate = new Date(value);
-      const today = new Date();
-      today.setHours(23, 59, 59, 999); // Set to end of today to allow today's date
-      return selectedDate <= today;
-    }),
-  endDate: yup
-    .string()
-    .required("End date is required")
-    .test('is-date', 'End date must be after start date', function(value) {
-      if (!value || !this.parent.startDate) return false;
-      const endDate = new Date(value);
-      const startDate = new Date(this.parent.startDate);
-      return endDate > startDate;
-    })
-    .test('is-date', 'End date cannot be in the future', function(value) {
-      if (!value) return false;
-      const selectedDate = new Date(value);
-      const today = new Date();
-      today.setHours(23, 59, 59, 999); // Set to end of today to allow today's date
-      return selectedDate <= today;
-    }),
-});
+import { sixStepResolver } from "../../resolvers/createProfileResolvers";
+import { submitFirstStep } from "../../appwriteUtils/createProfileAppwrite";
+import { submitSecondStep } from "../../appwriteUtils/createProfileAppwrite";
+import { submitThirdStep } from "../../appwriteUtils/createProfileAppwrite";
+import { submitFourthStep } from "../../appwriteUtils/createProfileAppwrite";
+import { submitFifthStep } from "../../appwriteUtils/createProfileAppwrite";
+import { submitSixStep } from "../../appwriteUtils/createProfileAppwrite";
 
 const SixStep = ({ onNext, formData, setFormData }) => {
   const [isCustomProfession, setIsCustomProfession] = useState(false);
@@ -65,7 +25,7 @@ const SixStep = ({ onNext, formData, setFormData }) => {
     trigger,
     formState: { errors },
   } = useForm({
-    resolver: yupResolver(educationSchema),
+    resolver: sixStepResolver,
     defaultValues: {
       profession: "",
       country: "",
@@ -190,19 +150,107 @@ const SixStep = ({ onNext, formData, setFormData }) => {
     { value: "other", label: "Other" },
   ];
 
-  const handleProfessionChange = (keys) => {
-    const selected = Array.from(keys)[0];
-    if (selected === "other") {
+  const handleProfessionChange = (value) => {
+    if (value === "other") {
       setIsCustomProfession(true);
       setValue("profession", "", { shouldValidate: false });
     } else {
       setIsCustomProfession(false);
-      setValue("profession", selected, { shouldValidate: true });
+      setValue("profession", value, { shouldValidate: true });
     }
   };
 
-  const onSubmit = (data) => {
-    setFormData({ ...formData, education: data });
+  const handleCountryChange = (value) => {
+    setValue("country", value, { shouldValidate: true });
+  };
+
+  const onSubmit = async (data) => {
+    // Combine all form data from all steps
+    let parentProfileId = null;
+    const allFormData = {
+      ...formData, // Data from previous steps (FirstStep, SecondStep, ThirdStep, FourthStep, FifthStep)
+      education: data // Data from current step (SixStep)
+    };
+
+   
+    
+    if (allFormData.firstName || allFormData.lastName || allFormData.description) {
+      const FirstStepData = {
+        "firstName": allFormData.firstName,
+        "lastName": allFormData.lastName,
+        "description": allFormData.description
+      }
+      const response = await submitFirstStep(FirstStepData);
+      if (response.success) {
+        parentProfileId = response.parentProfileId;
+        console.log(response);
+      }
+    }
+    
+    if (allFormData.profilePicture) {
+      const secondStepData = {
+        "profilePicture": allFormData.profilePicture
+      }
+      const resp = await submitSecondStep(secondStepData, parentProfileId);
+      console.log("step2", resp)
+    }
+    
+    if (allFormData.languages && allFormData.languages.length > 0) {
+      // console.log("step3 console", allFormData.languages)
+      const thirdStepData = {
+        "languages": allFormData.languages
+      }
+      const resp = await submitThirdStep(thirdStepData, parentProfileId);
+    }
+    
+    if (allFormData.occupation || allFormData.startDate || allFormData.endDate || allFormData.skills) {
+      console.log("Step 4 - Occupation & Skills:", {
+        occupation: allFormData.occupation,
+        startDate: allFormData.startDate,
+        endDate: allFormData.endDate,
+        isCurrentlyWorking: allFormData.isCurrentlyWorking,
+        skills: allFormData.skills
+      });
+      
+      const fourthStepData = {
+        occupation: allFormData.occupation,
+        startDate: allFormData.startDate,
+        endDate: allFormData.endDate,
+        isCurrentlyWorking: allFormData.isCurrentlyWorking,
+        skills: allFormData.skills,
+        yearsOfExperience: allFormData.yearsOfExperience,
+        timezone: allFormData.timezone
+      };
+      const resp = await submitFourthStep(fourthStepData, parentProfileId);
+    }
+    
+    if (allFormData.additionalSkills && allFormData.additionalSkills.length > 0) {
+      console.log("Step 5 - Additional Skills:", allFormData.additionalSkills);
+      
+      const fifthStepData = {
+        additionalSkills: allFormData.additionalSkills
+      };
+      const resp = await submitFifthStep(fifthStepData, parentProfileId);
+      console.log("step5 ifError", resp)
+
+    }
+    
+    if (allFormData.education) {
+      console.log("Step 6 - Education:", allFormData.education);
+      
+      const sixthStepData = {
+        education: allFormData.education
+      };
+      const resp = await submitSixStep(sixthStepData, parentProfileId);
+    }
+    
+    console.log("\n=== SUMMARY ===");
+    console.log("Total steps completed:", Object.keys(allFormData).length);
+    console.log("Form data keys:", Object.keys(allFormData));
+    console.log("========================\n");
+
+    // Update form data and proceed to next step
+    setFormData(allFormData);
     onNext();
   };
 
@@ -262,15 +310,16 @@ const SixStep = ({ onNext, formData, setFormData }) => {
                   }}
                 />
               ) : (
-                <Select
+                <Autocomplete
                   label="Profession"
                   variant="bordered"
                   placeholder="Select your profession"
-                  selectedKeys={watch("profession") ? new Set([watch("profession")]) : new Set()}
+                  defaultItems={onlineProfessions}
+                  selectedKey={watch("profession")}
                   onSelectionChange={handleProfessionChange}
                   size="sm"
                   classNames={{
-                    trigger: "text-sm",
+                    input: "text-sm",
                     label: "text-xs font-medium",
                   }}
                   allowsCustomValue
@@ -278,12 +327,12 @@ const SixStep = ({ onNext, formData, setFormData }) => {
                     // This enables search functionality
                   }}
                 >
-                  {onlineProfessions.map((profession) => (
-                    <SelectItem key={profession.value} value={profession.value}>
+                  {(profession) => (
+                    <AutocompleteItem key={profession.value} textValue={profession.label}>
                       {profession.label}
-                    </SelectItem>
-                  ))}
-                </Select>
+                    </AutocompleteItem>
+                  )}
+                </Autocomplete>
               )}
               {errors.profession && (
                 <p className="text-xs text-danger">{errors.profession.message}</p>
@@ -292,18 +341,16 @@ const SixStep = ({ onNext, formData, setFormData }) => {
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="space-y-1">
-                <Select
+                <Autocomplete
                   label="Country"
                   variant="bordered"
                   placeholder="Select country"
-                  selectedKeys={watch("country") ? new Set([watch("country")]) : new Set()}
-                  onSelectionChange={(keys) => {
-                    const selected = Array.from(keys)[0];
-                    setValue("country", selected, { shouldValidate: true });
-                  }}
+                  defaultItems={countries}
+                  selectedKey={watch("country")}
+                  onSelectionChange={handleCountryChange}
                   size="sm"
                   classNames={{
-                    trigger: "text-sm",
+                    input: "text-sm",
                     label: "text-xs font-medium",
                   }}
                   allowsCustomValue
@@ -311,12 +358,12 @@ const SixStep = ({ onNext, formData, setFormData }) => {
                     // This enables search functionality
                   }}
                 >
-                  {countries.map((country) => (
-                    <SelectItem key={country.value} value={country.value}>
+                  {(country) => (
+                    <AutocompleteItem key={country.value} textValue={country.label}>
                       {country.label}
-                    </SelectItem>
-                  ))}
-                </Select>
+                    </AutocompleteItem>
+                  )}
+                </Autocomplete>
                 {errors.country && (
                   <p className="text-xs text-danger">{errors.country.message}</p>
                 )}
