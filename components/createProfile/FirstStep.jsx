@@ -6,8 +6,8 @@ import { useForm } from "react-hook-form";
 import { motion } from "framer-motion";
 import { ArrowRight } from "lucide-react";
 import { firstStepResolver } from "../../resolvers/createProfileResolvers";
-
-const FirstStep = ({ onNext, formData, setFormData }) => {
+import { Button } from "@heroui/react";
+const FirstStep = ({ onNext, onBack, formData, setFormData }) => {
   const {
     register,
     handleSubmit,
@@ -31,7 +31,7 @@ const FirstStep = ({ onNext, formData, setFormData }) => {
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.5 }}
-      className="w-full max-w-2xl mx-auto p-6 bg-card rounded-xl shadow-lg"
+      className="w-full max-w-2xl mx-auto p-6 bg-card rounded-xl"
     >
       <motion.div
         initial={{ scale: 0.95 }}
@@ -98,14 +98,14 @@ const FirstStep = ({ onNext, formData, setFormData }) => {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.4 }}
-          className="flex justify-end"
+          className="flex justify-between gap-4"
         >
+       
           <button
             type="submit"
-            
-            className=" flex p-2  flex-row items-center justify-center gap-2  w-full bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-all duration-300 transform hover:scale-[1.02] active:scale-[0.98] shadow-lg hover:shadow-xl font-medium text-lg"
+            className="flex-1 flex p-2 flex-row items-center justify-center gap-2 w-full bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-all duration-300 transform hover:scale-[1.02] active:scale-[0.98] shadow-lg hover:shadow-xl font-medium text-lg"
           >
-            <p className="text-lg font-medium">Next</p>
+            <p className="text-small font-small">Next</p>
             <ArrowRight className="w-4 h-4" />
           </button>
         </motion.div>

@@ -9,13 +9,16 @@ import ThirdStep from "../createProfile/ThirdStep";
 import FourthStep from "../createProfile/FourthStep";
 import FifthStep from "../createProfile/FifthStep";
 import SixStep from "../createProfile/SixStep";
+import ZeroStep from "../createProfile/zeroStep";
 
-
-const CreateProfileStepper = () => {
+const CreateProfileStepper = ({onboardingId}) => {
   const [currentStep, setCurrentStep] = useState(0);
   const [formData, setFormData] = useState({});
 
   const steps = [
+    {
+      title: "Content Focus",
+    },
     {
       title: "Basic Info",
     },
@@ -37,8 +40,12 @@ const CreateProfileStepper = () => {
   ];
 
   const handleNext = () => {
+    console.log("HandleNext called. Current step:", currentStep, "Steps length:", steps.length, "Can advance:", currentStep < steps.length - 1);
     if (currentStep < steps.length - 1) {
+      console.log("Advancing from step", currentStep, "to step", currentStep + 1);
       setCurrentStep(currentStep + 1);
+    } else {
+      console.log("Cannot advance: reached maximum step");
     }
   };
 
@@ -100,43 +107,58 @@ const CreateProfileStepper = () => {
                 }}
               >
                 {currentStep === 0 && (
-                  <FirstStep
+                  <ZeroStep
                     onNext={handleNext}
+                    onBack={handleBack}
                     formData={formData}
                     setFormData={setFormData}
                   />
                 )}
                 {currentStep === 1 && (
-                  <SecondStep
+                  <FirstStep
                     onNext={handleNext}
+                    onBack={handleBack}
                     formData={formData}
                     setFormData={setFormData}
                   />
                 )}
                 {currentStep === 2 && (
-                  <ThirdStep
+                  <SecondStep
                     onNext={handleNext}
+                    onBack={handleBack}
                     formData={formData}
                     setFormData={setFormData}
                   />
                 )}
                 {currentStep === 3 && (
-                  <FourthStep
+                  <ThirdStep
                     onNext={handleNext}
+                    onBack={handleBack}
                     formData={formData}
                     setFormData={setFormData}
                   />
                 )}
                 {currentStep === 4 && (
-                  <FifthStep
+                  <FourthStep
                     onNext={handleNext}
+                    onBack={handleBack}
                     formData={formData}
                     setFormData={setFormData}
                   />
                 )}
                 {currentStep === 5 && (
-                  <SixStep
+                  <FifthStep
                     onNext={handleNext}
+                    onBack={handleBack}
+                    formData={formData}
+                    setFormData={setFormData}
+                  />
+                )}
+                {currentStep === 6 && (
+                  <SixStep
+                    onboardingId={onboardingId}
+                    onNext={handleNext}
+                    onBack={handleBack}
                     formData={formData}
                     setFormData={setFormData}
                   />

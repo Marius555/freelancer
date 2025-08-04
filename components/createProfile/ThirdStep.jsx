@@ -3,9 +3,9 @@
 import React, { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Button, Select, SelectItem, Input } from "@heroui/react";
-import { Plus, X, ArrowRight, Languages } from "lucide-react";
+import { Plus, X, ArrowRight, Languages, ArrowLeft } from "lucide-react";
 
-const ThirdStep = ({ onNext, formData, setFormData }) => {
+const ThirdStep = ({ onNext, onBack, formData, setFormData }) => {
   const [languages, setLanguages] = useState(
     formData?.languages || []
   );
@@ -120,7 +120,7 @@ const ThirdStep = ({ onNext, formData, setFormData }) => {
       </div>
 
       <div className="space-y-3">
-        <AnimatePresence mode="popLayout">
+        <AnimatePresence mode="sync">
           {languages.map((lang, index) => (
             <motion.div
               key={lang.id}
@@ -131,7 +131,7 @@ const ThirdStep = ({ onNext, formData, setFormData }) => {
                 duration: 0.2,
                 ease: "easeOut",
               }}
-              className="bg-card border border-border rounded-lg p-3 shadow-sm"
+              className="bg-card border border-foreground/5 rounded-lg p-3 shadow-sm"
             >
               <div className="flex items-center gap-3">
                 <div className="flex-1 grid grid-cols-2 gap-2">
@@ -255,22 +255,26 @@ const ThirdStep = ({ onNext, formData, setFormData }) => {
           </motion.div>
         )}
 
-        
-
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.3 }}
-          className="flex justify-center pt-4"
+          className="flex justify-between gap-4 pt-4"
         >
+          <Button
+            onPress={onBack}
+            className="flex-1 p-2 flex flex-row items-center justify-center gap-2 bg-default text-secondary-foreground rounded-lg hover: transition-all duration-300 transform hover:scale-[1.02] active:scale-[0.98] shadow-lg hover:shadow-xl font-small text-small">
+            <ArrowLeft className="w-4 h-4" />
+            Back
+          </Button>
           <Button
             onPress={handleSubmit}
             disabled={!isFormValid}
-            className={`px-8 py-2.5 w-full bg-primary text-primary-foreground rounded-lg transition-all duration-300 transform hover:scale-[1.02] active:scale-[0.98] shadow-lg hover:shadow-xl font-medium flex items-center justify-center gap-2 ${
+            className={`flex-1 px-8 py-2.5 bg-primary text-primary-foreground rounded-lg transition-all duration-300 transform hover:scale-[1.02] active:scale-[0.98] shadow-lg hover:shadow-xl font-medium flex items-center justify-center gap-2 ${
               !isFormValid ? "opacity-50 cursor-not-allowed" : "hover:bg-primary/90"
             }`}
           >
-            Continue
+            Next
             <ArrowRight className="w-4 h-4" />
           </Button>
         </motion.div>

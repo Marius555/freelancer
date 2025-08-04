@@ -11,6 +11,22 @@ const submitCompleteProfile = async (allFormData, parentProfileId) => {
     const session = await cookieStore.get("localSession");
     const decriptedSession = await decript(session?.value);
 
+    // Create parent profile first
+    // const parentProfile = await databases.createDocument(
+    //   process.env.DATABASE_ID,
+    //   process.env.CREATE_PARENT_PROFILE,
+    //   ID.unique(),
+    //   {
+    //     profileId: parentProfileId,
+    //     userId: decriptedSession.userId,
+    //     firstName: allFormData.firstName,
+    //     lastName: allFormData.lastName,
+    //     description: allFormData.description,
+    //   }
+    // );
+
+    
+
     let profilePictureUrl = null;
     
     // Upload profile picture to storage if provided
@@ -26,61 +42,158 @@ const submitCompleteProfile = async (allFormData, parentProfileId) => {
       profilePictureUrl = `${process.env.APPWRITE_ENDPOINT}/storage/buckets/${process.env.PROFILE_BUKET_ID}/files/${uploadedFile.$id}/view?project=${process.env.PROJECT_ID}`;
     }
 
-    // Update parent profile with complete data
-    const updatedParentProfile = await databases.updateDocument(
+    // Create step documents for each step
+    const createdDocuments = {};
+
+    // Step 0: Platform and Content Type Preferences
+    const zeroStepData = await databases.createDocument(
       process.env.DATABASE_ID,
-      process.env.CREATE_PARENT_PROFILE,
-      parentProfileId,
+      process.env.CREATE_PROFILE_ZERO_STEP,
+      ID.unique(),
       {
-        // Step 1: Basic Info
+        profileId: parentProfileId,
+        userId: decriptedSession.userId,
+        platforms: allFormData.platforms || [],
+        customPlatform: allFormData.customPlatform || "",
+        contentTypes: allFormData.contentTypes || [],
+        step: 0,
+        completed: true,
+      }
+    );
+    createdDocuments.step0 = zeroStepData;
+
+    // Step 1: Basic Info
+    const firstStepData = await databases.createDocument(
+      process.env.DATABASE_ID,
+      process.env.CREATE_PROFILE_FIRST_STEP,
+      ID.unique(),
+      {
+        profileId: parentProfileId,
+        userId: decriptedSession.userId,
         firstName: allFormData.firstName,
         lastName: allFormData.lastName,
         description: allFormData.description,
-        
-        // Step 2: Profile Picture
+        step: 1,
+        completed: true,
+      }
+    );
+    createdDocuments.step1 = firstStepData;
+
+    // Step 2: Profile Picture
+    const secondStepData = await databases.createDocument(
+      process.env.DATABASE_ID,
+      process.env.CREATE_PROFILE_SECOND_STEP,
+      ID.unique(),
+      {
+        profileId: parentProfileId,
+        userId: decriptedSession.userId,
         profilePictureUrl: profilePictureUrl,
         profilePictureFileId: allFormData.profilePicture ? allFormData.profilePicture.name : null,
-        
-        // Step 3: Languages
-        languages: allFormData.languages,
-        
-        // Step 4: Occupation & Skills
+        step: 2,
+        completed: true,
+      }
+    );
+    createdDocuments.step2 = secondStepData;
+
+    // Step 3: Languages (create separate documents for each language)
+    const createdLanguages = [];
+    if (allFormData.languages && allFormData.languages.length > 0) {
+      for (const languageData of allFormData.languages) {
+        const languageDocument = await databases.createDocument(
+          process.env.DATABASE_ID,
+          process.env.CREATE_PROFILE_THIRD_STEP,
+          ID.unique(),
+          {
+            profileId: [parentProfileId],
+            userId: decriptedSession.userId,
+            language: languageData.language,
+            proficiency: languageData.proficiency,
+            isCustom: languageData.isCustom || false,
+            step: 3,
+            completed: true,
+          }
+        );
+        createdLanguages.push(languageDocument);
+      }
+    }
+    createdDocuments.step3 = createdLanguages;
+
+    // Step 4: Occupation & Skills
+    const fourthStepData = await databases.createDocument(
+      process.env.DATABASE_ID,
+      process.env.CREATE_PROFILE_FOURTH_STEP,
+      ID.unique(),
+      {
+        profileId: parentProfileId,
+        userId: decriptedSession.userId,
         occupation: allFormData.occupation,
-        workStartDate: allFormData.startDate,
-        workEndDate: allFormData.endDate,
+        startDate: allFormData.startDate,
+        endDate: allFormData.endDate,
         isCurrentlyWorking: allFormData.isCurrentlyWorking,
-        occupationSkills: allFormData.skills,
-        yearsOfExperience: allFormData.yearsOfExperience || 0,
+        skills: allFormData.skills,
+        step: 4,
+        completed: true,
+      }
+    );
+    createdDocuments.step4 = fourthStepData;
+
+    // Step 5: Additional Skills (create multiple documents for each skill)
+    const submittedSkills = [];
+    if (allFormData.additionalSkills && allFormData.additionalSkills.length > 0) {
+      for (let i = 0; i < allFormData.additionalSkills.length; i++) {
+        const skill = allFormData.additionalSkills[i];
         
-        // Step 5: Additional Skills
-        additionalSkills: allFormData.skills,
-        totalSkillsCount: allFormData.skills ? allFormData.skills.length : 0,
-        
-        // Step 6: Education
+        const skillData = await databases.createDocument(
+          process.env.DATABASE_ID,
+          process.env.CREATE_PROFILE_STEP_FIVE,
+          ID.unique(),
+          {
+            profileId: [parentProfileId],
+            userId: decriptedSession.userId,
+            skillName: skill.skillName,
+            proficiency: skill.proficiency,
+            step: 5,
+            completed: true,
+          }
+        );
+        submittedSkills.push(skillData);
+      }
+    }
+    createdDocuments.step5 = submittedSkills;
+
+    // Step 6: Education
+    const sixthStepData = await databases.createDocument(
+      process.env.DATABASE_ID,
+      process.env.CREATE_PROFILE_STEP_SIX,
+      ID.unique(),
+      {
+        profileId: parentProfileId,
+        userId: decriptedSession.userId,
         profession: allFormData.education?.profession,
         country: allFormData.education?.country,
         school: allFormData.education?.school,
         educationLevel: allFormData.education?.educationLevel,
-        educationStartDate: allFormData.education?.startDate,
-        educationEndDate: allFormData.education?.endDate,
-        
-        // Profile metadata
-        profileStatus: "completed",
-        currentStep: 6,
-        totalSteps: 6,
-        completedSteps: [1, 2, 3, 4, 5, 6],
+        startDate: allFormData.education?.startDate,
+        endDate: allFormData.education?.endDate,
+        step: 6,
+        completed: true,
       }
     );
+    createdDocuments.step6 = sixthStepData;
 
     return { 
       success: true, 
-      message: "Complete profile updated successfully", 
-      data: updatedParentProfile 
+      message: "Complete profile created successfully", 
+      data: {
+        stepDocuments: createdDocuments,
+        totalSkillsCount: submittedSkills.length,
+        parentProfileId: parentProfileId
+      }
     };
   } catch (error) {
     return { 
       success: false, 
-      message: { error: error.message || "Failed to update complete profile" } 
+      message: { error: error.message || "Failed to create complete profile" } 
     };
   }
 };

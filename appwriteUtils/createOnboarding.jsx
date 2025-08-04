@@ -24,7 +24,12 @@ const createOnboarding = async (data) => {
         purpose: data.purpose,
       }
     );
-    return { success: true, message: "Onboarding created successfully" };
+    return { 
+      success: true, 
+      message: "Onboarding created successfully",
+      data: onboarding,
+      onboardingId: onboarding.$id
+    };
   } catch (error) {
     return { success: false, message: { error: error.message || "Failed to create onboarding" } };
   }

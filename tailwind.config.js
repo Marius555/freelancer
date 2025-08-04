@@ -5,7 +5,8 @@ const config = {
   content: [
     './components/**/*.{js,ts,jsx,tsx,mdx}',
     './app/**/*.{js,ts,jsx,tsx,mdx}',
-    "./node_modules/@heroui/theme/dist/**/*.{js,ts,jsx,tsx}"
+    "./node_modules/@heroui/theme/dist/**/*.{js,ts,jsx,tsx}",
+    "./node_modules/@heroui/react/dist/**/*.{js,ts,jsx,tsx}"
   ],
   
   theme: {
@@ -16,6 +17,10 @@ const config = {
         mono: ['Roboto Mono', 'monospace'],
         display: ['Poppins', 'sans-serif'],
         body: ['Open Sans', 'sans-serif'],
+      },
+      backgroundImage: {
+        "hero-section-title":
+          "linear-gradient(91deg, #FFF 32.88%, rgba(255, 255, 255, 0.40) 99.12%)",
       },
     },
   },

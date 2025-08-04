@@ -22,13 +22,14 @@ const OnboardingPage = () => {
   const [currentStep, setCurrentStep] = useState(1);
   const router = useRouter();
   const [selectedRole, setSelectedRole] = useState(null);
+  const [isSubmittingForm, setIsSubmittingForm] = useState(false);
 
   const {
     register,
     handleSubmit,
     setValue,
     watch,
-    formState: { errors },
+    formState: { errors, isSubmitting, },
     trigger
   } = useForm({
     mode: "onChange",
@@ -78,17 +79,6 @@ const OnboardingPage = () => {
       const isValid = await trigger(fieldsToValidate);
       
       if (isValid) {
-        // If we're on step 3 and it's a freelancer, submit the form
-        if (currentStep === 3 && selectedRole === "freelancer") {
-          const formData = {
-            role: selectedRole,
-            employmentType,
-            freelanceType,
-            ...watch() // Include all form data except resolver
-          };
-          delete formData.resolver; // Remove resolver from submission data
-          await onSubmit(formData);
-        }
         setCurrentStep(currentStep + 1);
       }
     }
@@ -131,6 +121,7 @@ const OnboardingPage = () => {
 
   const onSubmit = async (data) => {
     try {
+      setIsSubmittingForm(true);
       // Remove resolver from submission data
       const submissionData = { ...data };
       delete submissionData.resolver;
@@ -140,39 +131,39 @@ const OnboardingPage = () => {
       console.log(req);
       if (req.success) {
         console.log(req.message);
+        // Get the onboarding ID and redirect to create_profile
+        const onboardingId = req.onboardingId;
+        if (onboardingId) {
+          router.push(`/auth/onboarding/create_profile?onboardingId=${onboardingId}`);
+        }
       } 
     } catch (error) {
       console.error("Error submitting form:", error);
+      setIsSubmittingForm(false);
     }
   };
 
-  const handleClientSubmit = async () => {
-    const isValid = await trigger();
-    if (isValid) {
-      const formData = {
-        role: selectedRole,
-        employmentType,
-        companySize: watch("companySize"),
-        purpose: watch("purpose"),
-        ...watch() // Include all form data
-      };
-      delete formData.resolver; // Remove resolver from submission data
-      await onSubmit(formData);
-    }
+  const handleClientSubmit = (data) => {
+    const formData = {
+      role: selectedRole,
+      employmentType,
+      companySize: watch("companySize"),
+      purpose: watch("purpose"),
+      ...data // Use the validated form data
+    };
+    delete formData.resolver; // Remove resolver from submission data
+    return onSubmit(formData);
   };
 
-  const handleFreelancerSubmit = async () => {
-    const isValid = await trigger();
-    if (isValid) {
-      const formData = {
-        role: selectedRole,
-        employmentType,
-        freelanceType,
-        ...watch() // Include all form data
-      };
-      delete formData.resolver; // Remove resolver from submission data
-      await onSubmit(formData);
-    }
+  const handleFreelancerSubmit = (data) => {
+    const formData = {
+      role: selectedRole,
+      employmentType,
+      freelanceType,
+      ...data // Use the validated form data
+    };
+    delete formData.resolver; // Remove resolver from submission data
+    return onSubmit(formData);
   };
 
   const isNextDisabled = () => {
@@ -302,15 +293,16 @@ const OnboardingPage = () => {
                 <>
                   <Button
                     onPress={handleBack}
-                    isDisabled={currentStep === 1}
+                    isDisabled={currentStep === 1 || isSubmittingForm}
                     color="default"
                     size="lg"
                   >
                     Back
                   </Button>
                   <Button
-                    onPress={handleNext}
-                    isDisabled={isNextDisabled()}
+                    onPress={currentStep === 3 && selectedRole === "freelancer" ? handleSubmit(handleFreelancerSubmit) : handleNext}
+                    isDisabled={isNextDisabled() || isSubmittingForm}
+                    isLoading={isSubmittingForm && currentStep === 3 && selectedRole === "freelancer"}
                     color="primary"
                     size="lg"
                   >
@@ -322,14 +314,16 @@ const OnboardingPage = () => {
                 <>
                   <Button
                     onPress={handleBack}
+                    isDisabled={isSubmittingForm}
                     color="default"
                     size="lg"
                   >
                     Back
                   </Button>
                   <Button
-                    onPress={handleClientSubmit}
-                    isDisabled={isNextDisabled()}
+                    onPress={handleSubmit(handleClientSubmit)}
+                    isDisabled={isNextDisabled() || isSubmittingForm}
+                    isLoading={isSubmittingForm}
                     color="primary"
                     size="lg"
                   >

@@ -13,6 +13,21 @@ This directory contains all the submit functions for the createProfile stepper c
 
 ### Individual Step Submissions
 
+#### 0. `submitZeroStep.js`
+- **Purpose**: Creates parent profile and saves platform/content type preferences
+- **Creates**: Parent profile document (if doesn't exist) + Zero step document
+- **Database Collections**: `CREATE_PARENT_PROFILE` + `CREATE_PROFILE_ZERO_STEP`
+- **Returns**: `{ success, message, data, parentProfileId }`
+- **Usage**:
+  ```javascript
+  const result = await submitZeroStep({
+    platforms: ["youtube", "instagram"],
+    customPlatform: "LinkedIn",
+    contentTypes: ["short_form", "long_form"]
+  });
+  const parentProfileId = result.parentProfileId; // Save this for subsequent steps
+  ```
+
 #### 1. `submitFirstStep.js`
 - **Purpose**: Creates parent profile and saves basic user information
 - **Creates**: Parent profile document + First step document
@@ -109,12 +124,15 @@ This directory contains all the submit functions for the createProfile stepper c
 #### 8. `submitStepByStep.js`
 - **Purpose**: Universal function for submitting any step
 - **Parameters**: `(stepNumber, stepData, parentProfileId)`
-- **Creates parent profile automatically** for step 1 if not provided
+- **Creates parent profile automatically** for step 0 or 1 if not provided
 - **Usage**:
   ```javascript
-  // Step 1 (creates parent automatically)
-  const result1 = await submitStepByStep(1, step1Data);
-  const parentProfileId = result1.parentProfileId;
+  // Step 0 (creates parent automatically)
+  const result0 = await submitStepByStep(0, step0Data);
+  const parentProfileId = result0.parentProfileId;
+  
+  // Step 1 (creates parent automatically if not from step 0)
+  const result1 = await submitStepByStep(1, step1Data, parentProfileId);
   
   // Subsequent steps
   const result2 = await submitStepByStep(2, step2Data, parentProfileId);
@@ -132,7 +150,7 @@ This directory contains all the submit functions for the createProfile stepper c
   description: string,
   profileStatus: "in_progress" | "completed",
   currentStep: number,
-  totalSteps: 6,
+  totalSteps: 7,
   completedSteps: number[],
   // ... all other profile data (updated as steps complete)
   createdAt: string,
@@ -157,6 +175,7 @@ This directory contains all the submit functions for the createProfile stepper c
 ### Complete Flow Example
 ```javascript
 import { 
+  submitZeroStep,
   submitFirstStep, 
   submitSecondStep, 
   submitThirdStep,
@@ -165,15 +184,22 @@ import {
   submitSixStep
 } from '../../appwriteUtils/createProfileAppwrite';
 
-// Step 1: Create parent profile
-const step1Result = await submitFirstStep({
-  firstName: "John",
-  lastName: "Doe",
-  description: "A passionate developer..."
+// Step 0: Platform and content type preferences
+const step0Result = await submitZeroStep({
+  platforms: ["youtube", "instagram"],
+  customPlatform: "",
+  contentTypes: ["short_form", "long_form"]
 });
 
-if (step1Result.success) {
-  const parentProfileId = step1Result.parentProfileId;
+if (step0Result.success) {
+  const parentProfileId = step0Result.parentProfileId;
+  
+  // Step 1: Basic Info
+  await submitFirstStep({
+    firstName: "John",
+    lastName: "Doe",
+    description: "A passionate developer..."
+  }, parentProfileId);
   
   // Step 2: Profile picture
   await submitSecondStep({
@@ -198,9 +224,12 @@ import { submitStepByStep } from '../../appwriteUtils/createProfileAppwrite';
 
 let parentProfileId = null;
 
+// Step 0
+const result0 = await submitStepByStep(0, step0Data);
+parentProfileId = result0.parentProfileId;
+
 // Step 1
-const result1 = await submitStepByStep(1, step1Data);
-parentProfileId = result1.parentProfileId;
+await submitStepByStep(1, step1Data, parentProfileId);
 
 // Step 2
 await submitStepByStep(2, step2Data, parentProfileId);
@@ -217,6 +246,7 @@ await submitStepByStep(3, step3Data, parentProfileId);
 # Database IDs
 DATABASE_ID=your_database_id
 PROFILE_PARENT_ID=your_parent_profile_collection_id
+CREATE_PROFILE_ZERO_STEP=your_zero_step_collection_id
 PROFILE_FIRST_STEP_ID=your_first_step_collection_id
 PROFILE_SECOND_STEP_ID=your_second_step_collection_id
 PROFILE_THIRD_STEP_ID=your_third_step_collection_id

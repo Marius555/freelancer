@@ -11,16 +11,7 @@ const submitFifthStep = async (data, parentProfileId) => {
     const session = await cookieStore.get("localSession");
     const decriptedSession = await decript(session?.value);
 
-    // Update parent profile with current step
-    await databases.updateDocument(
-      process.env.DATABASE_ID,
-      process.env.CREATE_PARENT_PROFILE,
-      parentProfileId,
-      {
-        currentStep: 5,
-        completedSteps: [1, 2, 3, 4, 5],
-      }
-    );
+    
 
     // Submit each skill individually
     const submittedSkills = [];
@@ -35,7 +26,7 @@ const submitFifthStep = async (data, parentProfileId) => {
           process.env.CREATE_PROFILE_STEP_FIVE,
           ID.unique(),
           {
-            profileId: [parentProfileId], // Reference to parent profile
+            profileId: parentProfileId, // Reference to parent profile
             userId: decriptedSession.userId,
             skillName: skill.skillName,
             proficiency: skill.proficiency,

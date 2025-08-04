@@ -25,18 +25,7 @@ const submitSecondStep = async (data, parentProfileId) => {
       // Construct the file URL manually
       profilePictureUrl = `${process.env.APPWRITE_ENDPOINT}/storage/buckets/${process.env.PROFILE_BUKET_ID}/files/${uploadedFile.$id}/view?project=${process.env.PROJECT_ID}`;
     }
-    console.log("URLstep2", profilePictureUrl)
-
-    // Update parent profile with current step
-    await databases.updateDocument(
-      process.env.DATABASE_ID,
-      process.env.CREATE_PARENT_PROFILE,
-      parentProfileId,
-      {
-        currentStep: 2,
-        completedSteps: [1, 2],
-      }
-    );
+ 
 
     const secondStepData = await databases.createDocument(
       process.env.DATABASE_ID,

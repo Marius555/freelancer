@@ -4,10 +4,10 @@ import React, { useState, useEffect } from "react";
 import { Input, Button, Chip, Select, SelectItem } from "@heroui/react";
 import { useForm } from "react-hook-form";
 import { motion, AnimatePresence } from "framer-motion";
-import { ArrowRight, Plus, X } from "lucide-react";
+import { ArrowLeft, ArrowRight, Plus, X } from "lucide-react";
 import { fifthStepResolver } from "../../resolvers/createProfileResolvers";
 
-const FifthStep = ({ onNext, formData, setFormData }) => {
+const FifthStep = ({ onNext, onBack, formData, setFormData }) => {
   const [skills, setSkills] = useState([]);
   const [skillCounter, setSkillCounter] = useState(0);
 
@@ -80,12 +80,15 @@ const FifthStep = ({ onNext, formData, setFormData }) => {
   };
 
   const handleNext = () => {
+    console.log("handleNext called with skills:", skills);
+    
     if (skills.length === 0) {
       alert("Please add at least one skill");
       return;
     }
     setFormData({ ...formData, additionalSkills: skills });
     onNext();
+  
   };
 
   return (
@@ -135,8 +138,8 @@ const FifthStep = ({ onNext, formData, setFormData }) => {
               <div className="md:col-span-5 space-y-1">
                 <Input
                   variant="bordered"
-                  label="Skill Name"
-                  placeholder="e.g., Voice Over"
+                  label="Describe your Specific Skill"
+                  placeholder="e.g., Voice Over on youtube and Tik Tok"
                   {...register("skillName")}
                   errorMessage={errors.skillName?.message}
                   isInvalid={!!errors.skillName}
@@ -170,12 +173,12 @@ const FifthStep = ({ onNext, formData, setFormData }) => {
                   ))}
                 </Select>
               </div>
-              <div className="md:col-span-2 flex justify-center">
+              <div className=" flex ">
                 <Button
                   type="submit"
-                  isIconOnly
+                  
                   size="lg"
-                  className="bg-default text-primary-foreground hover:bg-primary/80 transition-all duration-300 transform  rounded-full"
+                  className="bg-default text-primary-foreground hover:bg-primary/80 transition-all duration-300 transform "
                   disabled={skills.length >= 5}
                 >
                   <Plus className="w-5 h-5" />
@@ -260,11 +263,21 @@ const FifthStep = ({ onNext, formData, setFormData }) => {
             duration: 0.5, 
             ease: [0.25, 0.46, 0.45, 0.94]
           }}
+          className="flex justify-between gap-4"
         >
           <Button
-            onPress={handleNext}
+            onPress={onBack}
+            className="flex-1 p-2 flex flex-row items-center justify-center gap-2 bg-default text-secondary-foreground rounded-lg hover: transition-all duration-300 transform hover:scale-[1.02] active:scale-[0.98] shadow-lg hover:shadow-xl font-small text-small">
+              <ArrowLeft className="w-4 h-4" />
+            <p className="text-sm font-medium">Back</p>
+          </Button>
+          <Button
+            onPress={() => {
+              console.log("Button clicked, skills count:", skills.length);
+              handleNext();
+            }}
             disabled={skills.length === 0}
-            className={`px-6 flex flex-row items-center justify-center gap-2 py-2 w-full bg-primary text-primary-foreground rounded-lg transition-all duration-300 transform hover:scale-[1.02] active:scale-[0.98] shadow-lg hover:shadow-xl font-medium ${
+            className={`flex-1 px-6 flex flex-row items-center justify-center gap-2 py-2 bg-primary text-primary-foreground rounded-lg transition-all duration-300 transform hover:scale-[1.02] active:scale-[0.98] shadow-lg hover:shadow-xl font-medium ${
               skills.length === 0 ? 'opacity-50 cursor-not-allowed' : 'hover:bg-primary/90'
             }`}
           >

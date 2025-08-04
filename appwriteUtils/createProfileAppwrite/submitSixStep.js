@@ -4,13 +4,7 @@ import { ID } from "node-appwrite";
 import decript from "../../components/middleware/decript";
 import { cookies } from "next/headers";
 
-// Helper function to convert date string to ISO string for Appwrite DateTime
-const convertDateStringToISO = (dateString) => {
-  if (!dateString) return null;
-  
-  const jsDate = new Date(dateString);
-  return jsDate.toISOString();
-};
+
 
 const submitSixStep = async (data, parentProfileId) => {
   try {
@@ -19,21 +13,11 @@ const submitSixStep = async (data, parentProfileId) => {
     const session = await cookieStore.get("localSession");
     const decriptedSession = await decript(session?.value);
 
-    // Update parent profile as completed
-    await databases.updateDocument(
-      process.env.DATABASE_ID,
-      process.env.CREATE_PARENT_PROFILE,
-      parentProfileId,
-      {
-        currentStep: 6,
-        completedSteps: [1, 2, 3, 4, 5, 6],
-        profileStatus: "completed",
-      }
-    );
+   
 
     const sixStepData = await databases.createDocument(
       process.env.DATABASE_ID,
-      process.env.CREATE_PROFILE_SIX_STEP,
+      process.env.CREATE_PROFILE_STEP_SIX,
       ID.unique(),
       {
         profileId: parentProfileId, // Reference to parent profile
@@ -42,8 +26,8 @@ const submitSixStep = async (data, parentProfileId) => {
         country: data.education.country,
         school: data.education.school,
         educationLevel: data.education.educationLevel,
-        startDate: convertDateStringToISO(data.education.startDate),
-        endDate: convertDateStringToISO(data.education.endDate),
+        startDate: data.education.startDate,
+        endDate: data.education.endDate,
         step: 6,
         completed: true,
       }

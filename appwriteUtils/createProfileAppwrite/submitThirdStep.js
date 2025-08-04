@@ -11,16 +11,7 @@ const submitThirdStep = async (data, parentProfileId) => {
     const session = await cookieStore.get("localSession");
     const decriptedSession = await decript(session?.value);
 
-    // Update parent profile with current step
-    await databases.updateDocument(
-      process.env.DATABASE_ID,
-      process.env.CREATE_PARENT_PROFILE,
-      parentProfileId,
-      {
-        currentStep: 3,
-        completedSteps: [1, 2, 3],
-      }
-    );
+    
 
     // Create separate documents for each language
     const createdLanguages = [];

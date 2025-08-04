@@ -1,5 +1,4 @@
 import "../styles/globals.css"
-import { Link } from "@heroui/link";
 import clsx from "clsx";
 import { Providers } from "./providers";
 import {siteConfig} from "../config/site"
@@ -31,6 +30,7 @@ export default function RootLayout({ children }) {
       <body
         className={clsx(
           "min-h-screen bg-background font-sans antialiased",
+          fontSans.variable
         )}
       >
         <Providers themeProps={{ attribute: "class", defaultTheme: "dark" }}>

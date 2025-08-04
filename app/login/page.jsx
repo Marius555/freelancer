@@ -4,7 +4,7 @@ import React from "react";
 import { useForm } from "react-hook-form";
 import { Form } from "@heroui/form";
 import { Button } from "@heroui/button";
-import { Input } from "@heroui/input";
+import {Input} from "@heroui/input";
 import { Divider } from "@heroui/divider";
 import { Link } from "@heroui/link";
 import { LogoIcon } from "../../components/logoFile";

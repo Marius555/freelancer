@@ -12,16 +12,7 @@ const submitFourthStep = async (data, parentProfileId) => {
     const session = await cookieStore.get("localSession");
     const decriptedSession = await decript(session?.value);
 
-    // Update parent profile with current step
-    await databases.updateDocument(
-      process.env.DATABASE_ID,
-      process.env.CREATE_PARENT_PROFILE,
-      parentProfileId,
-      {
-        currentStep: 4,
-        completedSteps: [1, 2, 3, 4],
-      }
-    );
+  
 
     const fourthStepData = await databases.createDocument(
       process.env.DATABASE_ID,

@@ -4,7 +4,7 @@ import React, { useState, useEffect } from "react";
 import { Input, Select, SelectItem, Checkbox, Chip, DatePicker } from "@heroui/react";
 import { useForm } from "react-hook-form";
 import { motion } from "framer-motion";
-import { ArrowRight, Briefcase, CheckCircle } from "lucide-react";
+import { ArrowLeft, ArrowRight, Briefcase, CheckCircle } from "lucide-react";
 import { CalendarDate, today, getLocalTimeZone } from "@internationalized/date";
 import { fourthStepResolver } from "../../resolvers/createProfileResolvers";
 
@@ -156,7 +156,7 @@ const occupationSkills = {
   ],
 };
 
-const FourthStep = ({ onNext, formData, setFormData }) => {
+const FourthStep = ({ onNext, onBack, formData, setFormData }) => {
   const [selectedOccupation, setSelectedOccupation] = useState("");
   const [selectedSkills, setSelectedSkills] = useState([]);
   const [isCurrentlyWorking, setIsCurrentlyWorking] = useState(false);
@@ -183,13 +183,63 @@ const FourthStep = ({ onNext, formData, setFormData }) => {
   const watchedOccupation = watch("occupation");
   const watchedStartDate = watch("startDate");
 
+  // Restore form data from formData when component mounts
   useEffect(() => {
-    if (watchedOccupation) {
-      setSelectedOccupation(watchedOccupation);
-      setSelectedSkills([]);
-      setValue("skills", []);
+    if (formData) {
+      // Restore occupation
+      if (formData.occupation) {
+        setSelectedOccupation(formData.occupation);
+        setValue("occupation", formData.occupation, { shouldValidate: false });
+      }
+      
+      // Restore skills
+      if (formData.skills && Array.isArray(formData.skills)) {
+        setSelectedSkills(formData.skills);
+        setValue("skills", formData.skills, { shouldValidate: false });
+      }
+      
+      // Restore currently working status
+      if (formData.isCurrentlyWorking !== undefined) {
+        setIsCurrentlyWorking(formData.isCurrentlyWorking);
+        setValue("isCurrentlyWorking", formData.isCurrentlyWorking, { shouldValidate: false });
+      }
+      
+      // Restore start date
+      if (formData.startDate) {
+        const startDateObj = new Date(formData.startDate);
+        const calendarStartDate = new CalendarDate(
+          startDateObj.getFullYear(),
+          startDateObj.getMonth() + 1,
+          startDateObj.getDate()
+        );
+        setStartDate(calendarStartDate);
+        setValue("startDate", startDateObj, { shouldValidate: false });
+      }
+      
+      // Restore end date
+      if (formData.endDate) {
+        const endDateObj = new Date(formData.endDate);
+        const calendarEndDate = new CalendarDate(
+          endDateObj.getFullYear(),
+          endDateObj.getMonth() + 1,
+          endDateObj.getDate()
+        );
+        setEndDate(calendarEndDate);
+        setValue("endDate", endDateObj, { shouldValidate: false });
+      }
     }
-  }, [watchedOccupation, setValue]);
+  }, [formData, setValue]);
+
+  useEffect(() => {
+    if (watchedOccupation && watchedOccupation !== selectedOccupation) {
+      setSelectedOccupation(watchedOccupation);
+      // Only clear skills if this is a new occupation selection (not restoration)
+      if (!formData?.skills || formData.skills.length === 0) {
+        setSelectedSkills([]);
+        setValue("skills", []);
+      }
+    }
+  }, [watchedOccupation, setValue, selectedOccupation, formData]);
 
   // Get user's timezone
   const getUserTimezone = () => {
@@ -257,15 +307,41 @@ const FourthStep = ({ onNext, formData, setFormData }) => {
 
   const handleSubmitForm = (data) => {
     const yearsOfExperience = calculateYearsOfExperience();
+    
+    // Convert CalendarDate objects to JavaScript Date objects for proper serialization
+    const convertedStartDate = startDate ? new Date(startDate.year, startDate.month - 1, startDate.day) : null;
+    const convertedEndDate = endDate && !isCurrentlyWorking ? new Date(endDate.year, endDate.month - 1, endDate.day) : null;
+    
+    // Validate that the converted dates are valid Date objects
+    if (convertedStartDate && isNaN(convertedStartDate.getTime())) {
+      alert("Invalid start date selected. Please try again.");
+      return;
+    }
+    
+    if (convertedEndDate && isNaN(convertedEndDate.getTime())) {
+      alert("Invalid end date selected. Please try again.");
+      return;
+    }
+    
+    console.log("Form submission data:", {
+      startDate: convertedStartDate,
+      endDate: convertedEndDate,
+      originalStartDate: startDate,
+      originalEndDate: endDate,
+      formData: data
+    });
+    
     const formDataToSave = {
       ...data,
       skills: selectedSkills,
       isCurrentlyWorking: isCurrentlyWorking,
-      startDate: startDate,
-      endDate: endDate,
+      startDate: convertedStartDate,
+      endDate: convertedEndDate,
       yearsOfExperience: yearsOfExperience,
       timezone: getUserTimezone(),
     };
+    
+    console.log("Final formDataToSave:", formDataToSave);
     setFormData(formDataToSave);
     onNext();
   };
@@ -299,7 +375,7 @@ const FourthStep = ({ onNext, formData, setFormData }) => {
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.5 }}
-      className="w-full max-w-4xl mx-auto p-4 bg-card rounded-xl shadow-lg h-full flex flex-col"
+      className="w-full max-w-4xl mx-auto p-4 bg-card rounded-xl h-full flex flex-col"
     >
       <motion.div
         initial={{ scale: 0.95 }}
@@ -488,11 +564,18 @@ const FourthStep = ({ onNext, formData, setFormData }) => {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.4 }}
-          className="flex justify-end flex-shrink-0 pt-2"
+          className="flex justify-between gap-4 flex-shrink-0 pt-2"
         >
           <button
+            type="button"
+            onClick={onBack}
+            className="flex-1 p-2 flex flex-row items-center justify-center gap-2 bg-default text-secondary-foreground rounded-lg hover: transition-all duration-300 transform hover:scale-[1.02] active:scale-[0.98] shadow-lg hover:shadow-xl font-small text-small">
+              <ArrowLeft className="w-4 h-4" />
+            <p className="text-base font-medium">Back</p>
+          </button>
+          <button
             type="submit"
-            className="px-6 flex flex-row items-center justify-center gap-2 py-2.5 w-full bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-all duration-300 transform hover:scale-[1.02] active:scale-[0.98] shadow-lg hover:shadow-xl font-medium text-base"
+            className="flex-1 px-6 flex flex-row items-center justify-center gap-2 py-2.5 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-all duration-300 transform hover:scale-[1.02] active:scale-[0.98] shadow-lg hover:shadow-xl font-medium text-base"
           >
             <p className="text-base font-medium">Next</p>
             <ArrowRight className="w-4 h-4" />

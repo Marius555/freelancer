@@ -1,17 +1,28 @@
 "use client";
 
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { useDropzone } from 'react-dropzone';
 import Image from 'next/image';
 import { Button } from "@heroui/react";
-import { Camera, Upload, X, ArrowRight, Loader2 } from 'lucide-react';
+import { Camera, Upload, X, ArrowRight, Loader2, ArrowLeft } from 'lucide-react';
 
-const SecondStep = ({ onNext, formData, setFormData }) => {
+
+const SecondStep = ({ onNext, onBack, formData, setFormData }) => {
   const [imagePreview, setImagePreview] = useState(null);
   const [selectedFile, setSelectedFile] = useState(null);
   const [isUploading, setIsUploading] = useState(false);
   const [error, setError] = useState(null);
+
+  // Restore image data from formData when component mounts
+  useEffect(() => {
+    if (formData?.profilePicturePreview) {
+      setImagePreview(formData.profilePicturePreview);
+    }
+    if (formData?.profilePicture) {
+      setSelectedFile(formData.profilePicture);
+    }
+  }, [formData]);
 
   const onDrop = useCallback((acceptedFiles) => {
     setError(null);
@@ -161,11 +172,17 @@ const SecondStep = ({ onNext, formData, setFormData }) => {
           </motion.p>
         )}
 
-        <div className="flex justify-center pt-4">
+        <div className="flex justify-between gap-4 pt-4">
+          <Button
+            onPress={onBack}
+            className="flex-1 p-2 flex flex-row items-center justify-center gap-2 bg-default text-secondary-foreground rounded-lg hover: transition-all duration-300 transform hover:scale-[1.02] active:scale-[0.98] shadow-lg hover:shadow-xl font-small text-small">
+            <ArrowLeft className="w-4 h-4" />
+            Back
+          </Button>
           <Button
             onPress={handleSubmit}
             disabled={!imagePreview || isUploading}
-            className={`px-8 py-2.5 w-full max-w-xs bg-primary text-primary-foreground rounded-lg transition-all duration-300 transform hover:scale-[1.02] active:scale-[0.98] shadow-lg hover:shadow-xl font-medium flex items-center justify-center gap-2 ${
+            className={`flex-1 px-8 py-2.5 bg-primary text-primary-foreground rounded-lg transition-all duration-300 transform hover:scale-[1.02] active:scale-[0.98] shadow-lg hover:shadow-xl font-medium flex items-center justify-center gap-2 ${
               (!imagePreview || isUploading) ? 'opacity-50 cursor-not-allowed' : 'hover:bg-primary/90'
             }`}
           >

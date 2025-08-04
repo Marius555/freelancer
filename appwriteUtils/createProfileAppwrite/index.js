@@ -1,4 +1,5 @@
 // Export all createProfile submit functions
+export { default as submitZeroStep } from './submitZeroStep.js';
 export { default as submitFirstStep } from './submitFirstStep.js';
 export { default as submitSecondStep } from './submitSecondStep.js';
 export { default as submitThirdStep } from './submitThirdStep.js';
