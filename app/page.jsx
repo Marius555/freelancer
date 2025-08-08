@@ -86,6 +86,7 @@ const transformCreatorData = (creator) => {
   console.log(`Creator ${name} avatar URL:`, profilePictureUrl);
   
   return {
+    id: creator.$id, // Include the creator's unique ID for reporting functionality
     name,
     username: "", // Will be populated later when username field is available
     tagline: creator.step_two?.description || "Content creator",
@@ -104,15 +105,36 @@ export default async function Home() {
   const creatorsResponse = await getCreators();
   console.log("Raw creators data:", creatorsResponse);
   
-  // Filter creators who have "youtube" in their platforms
+  // Filter creators by platforms
   const youtubeCreators = creatorsResponse?.documents?.filter(creator => 
     creator.step_zero?.platforms?.includes("youtube")
   ) || [];
-  
-  // Transform the filtered data to match Scroll component format
+
+  const tiktokCreators = creatorsResponse?.documents?.filter(creator => 
+    creator.step_zero?.platforms?.includes("tiktok")
+  ) || [];
+
+  const instagramCreators = creatorsResponse?.documents?.filter(creator => 
+    creator.step_zero?.platforms?.includes("instagram")
+  ) || [];
+
+  // Others = do not include youtube, tiktok, instagram
+  const otherCreators = creatorsResponse?.documents?.filter(creator => {
+    const platforms = creator.step_zero?.platforms || [];
+    const hasKnown = platforms.includes("youtube") || platforms.includes("tiktok") || platforms.includes("instagram");
+    return !hasKnown; 
+  }) || [];
+
+  // Transform data for the Scroll component
   const transformedYoutubeCreators = youtubeCreators.map(transformCreatorData);
-  
+  const transformedTiktokCreators = tiktokCreators.map(transformCreatorData);
+  const transformedInstagramCreators = instagramCreators.map(transformCreatorData);
+  const transformedOtherCreators = otherCreators.map(transformCreatorData);
+
   console.log("Transformed YouTube creators:", transformedYoutubeCreators);
+  console.log("Transformed TikTok creators:", transformedTiktokCreators);
+  console.log("Transformed Instagram creators:", transformedInstagramCreators);
+  console.log("Transformed Other creators:", transformedOtherCreators);
   
   return (
     <div>
@@ -121,6 +143,24 @@ export default async function Home() {
         title="YouTube Creators"
         subtitle="Discover talented YouTube content creators"
         data={transformedYoutubeCreators}
+      />
+
+      <Scroll 
+        title="TikTok Creators"
+        subtitle="Short-form creators making waves on TikTok"
+        data={transformedTiktokCreators}
+      />
+
+      <Scroll 
+        title="Instagram Creators"
+        subtitle="Reels and content from Instagram creators"
+        data={transformedInstagramCreators}
+      />
+
+      <Scroll 
+        title="Other Creators"
+        subtitle="Talented creators on other platforms or not yet specified"
+        data={transformedOtherCreators}
       />
     </div>
   );

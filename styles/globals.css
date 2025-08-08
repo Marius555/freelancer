@@ -12,6 +12,11 @@ input:focus {
     box-shadow: none !important;
     border-color: transparent !important;
   }
+textarea:focus {
+    outline: none !important;
+    box-shadow: none !important;
+    border-color: transparent !important;
+  }
 
 @tailwind base;
 @tailwind components;

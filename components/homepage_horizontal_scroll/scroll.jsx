@@ -2,6 +2,7 @@
 import React, { useRef, useEffect, useState } from "react";
 import { Card, CardHeader, CardBody, CardFooter, Avatar, Button, Link, Chip } from "@heroui/react";
 import { Star, ChevronLeft, ChevronRight, MoreVertical } from "lucide-react";
+import ReportDrawer from "../ReportDrawer";
 
 // TODO: Remove these hardcoded arrays in the future - they're kept as fallback for backward compatibility
 const userPhotos = [
@@ -98,10 +99,25 @@ const Scroll = ({
   const [scrollLeft, setScrollLeft] = useState(0);
   const [canScrollLeft, setCanScrollLeft] = useState(false);
   const [canScrollRight, setCanScrollRight] = useState(true);
+  
+  // Report drawer state
+  const [isReportDrawerOpen, setIsReportDrawerOpen] = useState(false);
+  const [selectedCreatorForReport, setSelectedCreatorForReport] = useState(null);
 
   // Use passed data or fall back to hardcoded data (TODO: Remove fallback in the future)
   const displayData = data || youtubeCreators;
   const cardCount = displayData.length;
+
+  // Report drawer handlers
+  const handleOpenReportDrawer = (creator) => {
+    setSelectedCreatorForReport(creator);
+    setIsReportDrawerOpen(true);
+  };
+
+  const handleCloseReportDrawer = () => {
+    setIsReportDrawerOpen(false);
+    setSelectedCreatorForReport(null);
+  };
 
   // Wheel scroll functionality disabled to prevent interference with page scrolling
 
@@ -279,14 +295,21 @@ const Scroll = ({
                    )}
                    
                    {/* Report button on right side */}
-                   <div className="absolute top-2 sm:top-3 right-2 sm:right-3 z-10">
+                   <div className="absolute top-2 sm:top-3 right-2 sm:right-3 z-50 pointer-events-auto">
                      <Button
+                       onClick={(e) => {
+                         e.preventDefault();
+                         e.stopPropagation();
+                         handleOpenReportDrawer(creator);
+                       }}
+                       
                        isIconOnly
-                       variant="flat"
+                       variant="solid"
                        size="sm"
-                       className="bg-default-100 text-default-700"
+                       className="bg-transparent text-default-900 hover:bg-default-100"
+                       style={{ minWidth: '32px', minHeight: '32px' }}
                      >
-                       <MoreVertical size={12} className="sm:w-4 sm:h-4" />
+                       <MoreVertical size={16} className="sm:w-5 sm:h-5" />
                      </Button>
                    </div>
                    
@@ -374,6 +397,13 @@ const Scroll = ({
          </div>
                </div>
       </div>
+      
+      {/* Report Drawer */}
+      <ReportDrawer 
+        isOpen={isReportDrawerOpen}
+        onClose={handleCloseReportDrawer}
+        creator={selectedCreatorForReport}
+      />
     </section>
   );
 };
